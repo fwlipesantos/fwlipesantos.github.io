@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Felipe Santos · Engenheiro de dados</title>
+<meta name="description" content="Felipe Santos, engenheiro de dados. A parte técnica como um grafo de conhecimento vivo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1A1A1A; --panel:rgba(28,28,28,.82); --solid:#202020; --line:#3E3E3E; --line-hi:#9A9A9A; --dot:#2B2B2B;
+  --red:#FF2D2D; --gray:#BDBDBD; --ink:#EDEDED; --soft:#8C8C8C; --border:#333;
+  color-scheme:dark; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:light){
+  :root:not([data-theme="dark"]){
+    --bg:#EEEEEC; --panel:rgba(250,250,248,.86); --solid:#FAFAF8; --line:#C9C9C5; --line-hi:#5E5E5A; --dot:#D7D7D3;
+    --red:#E01B1B; --gray:#8A8A86; --ink:#1A1A1A; --soft:#6B6B67; --border:#D6D6D2; color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#EEEEEC; --panel:rgba(250,250,248,.86); --solid:#FAFAF8; --line:#C9C9C5; --line-hi:#5E5E5A; --dot:#D7D7D3;
+  --red:#E01B1B; --gray:#8A8A86; --ink:#1A1A1A; --soft:#6B6B67; --border:#D6D6D2; color-scheme:light;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.idb{position:absolute;left:clamp(20px,4vw,56px);bottom:clamp(30px,8vh,76px);z-index:3;pointer-events:none;will-change:transform,opacity,filter}
+.name{margin:0 0 -.14em;padding-bottom:.14em;font-weight:500;font-size:clamp(3rem,8.4vw,7.6rem);letter-spacing:-.055em;line-height:.88;overflow:hidden;white-space:nowrap}
+.role{margin:18px 0 0 6px;display:flex;align-items:center;gap:12px;font-size:clamp(1rem,1.5vw,1.3rem);color:var(--soft);opacity:0;transition:opacity .8s ease .5s}
+.ready .name,.ready .role{opacity:1}
+.ch{display:inline-block;will-change:transform;transform:translate3d(0,115%,0)}
+.role{clip-path:inset(0 100% 0 0)}
+.role{will-change:transform,opacity}
+.live{width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 0 0 var(--red);animation:live 2.4s ease-out infinite}
+@keyframes live{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--red) 60%,transparent)}100%{box-shadow:0 0 0 12px transparent}}
+.mono{font-family:"Geist Mono",ui-monospace,monospace}
+
+html{overflow-x:clip}
+.field{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(circle,var(--dot) 1px,transparent 1.5px);background-size:22px 22px;background-position:0 var(--py,0)}
+.field::after{content:"";position:absolute;inset:0;background-image:radial-gradient(circle,var(--red) 1.3px,transparent 1.8px);background-size:22px 22px;background-position:0 var(--py,0);
+  -webkit-mask-image:radial-gradient(circle 260px at var(--mx,-999px) var(--my,-999px),#000,transparent 72%);
+  mask-image:radial-gradient(circle 260px at var(--mx,-999px) var(--my,-999px),#000,transparent 72%);opacity:.5}
+
+.hero-wrap{position:relative;z-index:2;height:270vh}
+.hero{position:sticky;top:0;z-index:2;height:100vh;height:100svh;min-height:560px;overflow:hidden;background:var(--bg)}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(transparent,var(--bg));pointer-events:none}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:pan-y}
+canvas.grabbing{cursor:grabbing} canvas.pointer{cursor:pointer}
+.head{position:absolute;left:28px;top:calc(24px + env(safe-area-inset-top,0px));max-width:400px;pointer-events:none;z-index:3}
+.head h1{margin:0;font-weight:500;font-size:clamp(2rem,3.6vw,3.1rem);letter-spacing:-.035em;line-height:1;min-height:1em}
+.head p{margin:12px 0 0;color:var(--soft);font-size:.98rem;line-height:1.5;max-width:34ch;opacity:0;transition:opacity 1.2s ease 1.6s}
+.ready .head p,.ready .search,.ready .zoombtns,.ready .cue{opacity:1}
+.search,.zoombtns,.cue{opacity:0;transition:opacity 1.2s ease 2s}
+.search{position:absolute;right:28px;top:calc(24px + env(safe-area-inset-top,0px));z-index:4;width:280px}
+.search input{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:11px 14px 11px 38px;font-size:.95rem;outline:none;backdrop-filter:blur(10px);transition:border-color .2s}
+.search input:focus{border-color:var(--red)}
+.search svg{position:absolute;z-index:1;pointer-events:none;left:12px;top:12px;width:17px;height:17px;stroke:var(--soft);fill:none;stroke-width:2}
+.results{list-style:none;margin:6px 0 0;padding:4px;background:var(--panel);border:1px solid var(--border);border-radius:10px;backdrop-filter:blur(10px);display:none;max-height:260px;overflow:auto}
+.results.on{display:block}
+.results button{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:.92rem}
+.results button:hover,.results button.act{background:color-mix(in srgb,var(--ink) 9%,transparent)}
+.results i{width:8px;height:8px;border-radius:50%;flex:none}
+.hud{position:absolute;left:28px;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:3;font-size:.78rem;color:var(--soft);line-height:1.75;pointer-events:none}
+.hud .row{display:flex;gap:18px}
+.hud b{color:var(--ink);font-weight:500}
+.legend{display:flex;flex-direction:column;gap:2px;margin-bottom:12px;font-family:"Geist",sans-serif;font-size:.86rem}
+.legend span{display:flex;align-items:center;gap:9px}
+.legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.zoombtns{position:absolute;right:28px;bottom:calc(28px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;z-index:4}
+.zoombtns button{width:34px;height:34px;border-radius:8px;background:var(--panel);border:1px solid var(--border);cursor:pointer;font-size:1.05rem;line-height:1;backdrop-filter:blur(10px);transition:border-color .2s}
+.zoombtns button:hover{border-color:var(--ink)}
+.cue{position:absolute;right:32px;bottom:calc(30px + env(safe-area-inset-bottom,0px));z-index:4;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--soft);text-decoration:none;font-size:.85rem}
+.cue span{width:1px;height:34px;background:linear-gradient(transparent 0 40%,var(--red) 40% 60%,transparent 60%);background-size:100% 200%;animation:drip 1.8s ease-in-out infinite}
+@keyframes drip{from{background-position:0 100%}to{background-position:0 -100%}}
+.cue:hover{color:var(--ink)}
+
+.note{position:absolute;right:16px;top:calc(84px + env(safe-area-inset-top,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:400px;z-index:5;
+  background:var(--panel);border:1px solid var(--border);border-radius:14px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  display:flex;flex-direction:column;opacity:0;transform:translateX(24px) scale(.985);pointer-events:none;transition:opacity .4s ease,transform .5s cubic-bezier(.2,.8,.2,1)}
+.note.on{opacity:1;transform:none;pointer-events:auto}
+.note-top{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);font-size:.78rem;color:var(--soft)}
+.note-top .path{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.note-top button{background:none;border:0;cursor:pointer;color:var(--soft);font-size:1.1rem;line-height:1;padding:4px 6px;border-radius:6px}
+.note-top button:hover{color:var(--ink);background:color-mix(in srgb,var(--ink) 9%,transparent)}
+.note-top button:disabled{opacity:.3;cursor:default}
+.note-body{padding:22px 24px 28px;overflow-y:auto}
+.note-body > *{animation:noteIn .5s cubic-bezier(.2,.8,.2,1) both}
+.note-body > *:nth-child(2){animation-delay:.04s}.note-body > *:nth-child(3){animation-delay:.08s}.note-body > *:nth-child(4){animation-delay:.12s}.note-body > *:nth-child(n+5){animation-delay:.16s}
+@keyframes noteIn{from{opacity:0;transform:translateY(6px);filter:blur(3px)}}
+.note h2{margin:0 0 6px;font-weight:500;font-size:1.9rem;letter-spacing:-.03em;line-height:1.1}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 18px}
+.tags span{font-size:.75rem;padding:3px 9px;border-radius:999px;border:1px solid var(--border);color:var(--soft)}
+.tags span.r{border-color:var(--red);color:var(--red)}
+.note p{margin:0 0 14px;line-height:1.65;font-size:.98rem}
+.wl{color:var(--red);text-decoration:none;cursor:pointer;background:linear-gradient(var(--red),var(--red)) 0 100%/0 1px no-repeat;border-bottom:1px solid color-mix(in srgb,var(--red) 30%,transparent);transition:background-size .3s ease}
+.wl:hover{background-size:100% 1px}
+.note h3{margin:26px 0 10px;font-size:.8rem;font-weight:500;color:var(--soft)}
+.links{display:flex;flex-wrap:wrap;gap:6px}
+.links button{background:none;border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:.85rem;cursor:pointer;display:flex;align-items:center;gap:7px;transition:border-color .2s,transform .2s}
+.links button:hover{border-color:var(--ink);transform:translateY(-1px)}
+.links i{width:7px;height:7px;border-radius:50%}
+
+.docs{position:relative;z-index:1;display:grid;grid-template-columns:200px minmax(0,1fr);gap:56px;max-width:1160px;margin:0 auto;padding:88px 28px 40px}
+.tree{position:sticky;top:calc(28px + env(safe-area-inset-top,0px));align-self:start;font-size:.9rem}
+.tree p{margin:0 0 10px;color:var(--soft)}
+.tree ul{list-style:none;margin:0;padding:0 0 0 12px;border-left:1px solid var(--border);position:relative}
+.tree .ind{position:absolute;left:-1px;top:0;width:2px;height:30px;background:var(--red);border-radius:2px;transition:transform .5s cubic-bezier(.2,.8,.2,1),height .5s}
+.tree a{display:block;padding:5px 10px;color:var(--soft);text-decoration:none;transition:color .25s}
+.tree a:hover,.tree a.on{color:var(--ink)}
+.doc{padding:0 0 110px;max-width:760px;position:relative}
+.const{position:absolute;right:-250px;top:20px;width:230px;height:230px;pointer-events:none;will-change:transform;opacity:.7}
+.const line{stroke:var(--line);stroke-width:1}
+.const circle{opacity:.75}
+@media (max-width:1320px){.const{display:none}}
+.doc-path{margin:0 0 8px;color:var(--soft);font-size:.8rem;min-height:1.3em}
+.doc-path.typing::after{content:"";display:inline-block;width:7px;height:13px;background:var(--red);margin-left:2px;vertical-align:-2px;animation:blink .8s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.doc h2{margin:0 0 22px;font-weight:500;font-size:clamp(2rem,4vw,2.8rem);letter-spacing:-.035em;line-height:1.05}
+.doc p{line-height:1.7;margin:0 0 16px;max-width:62ch;font-size:1.02rem}
+[data-rv]{opacity:0;filter:blur(8px);transform:translateY(4px);transition:opacity .9s ease,filter .9s ease,transform .9s cubic-bezier(.2,.8,.2,1);transition-delay:var(--dl,0s)}
+[data-rv].in{opacity:1;filter:none;transform:none}
+.facts{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:10px 28px;margin:28px 0 30px;padding:20px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);font-size:.95rem}
+.facts dt{color:var(--soft)} .facts dd{margin:0}
+.btns{display:flex;flex-wrap:wrap;gap:10px}
+.btn{color:var(--ink);display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:9px;border:1px solid var(--border);text-decoration:none;font-weight:500;font-size:.95rem;cursor:pointer;background:none;position:relative;overflow:hidden;transition:border-color .25s,transform .25s}
+.btn:hover{border-color:var(--ink);transform:translateY(-1px)}
+.btn.primary{background:var(--red);border-color:var(--red);color:#fff}
+.btn.primary::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transition:left .7s ease}
+.btn.primary:hover::after{left:120%}
+.btn[aria-disabled="true"]{opacity:.45;pointer-events:none}
+.proj{display:grid;grid-template-columns:28px minmax(0,1fr);gap:4px 16px;padding:28px 0;position:relative}
+.proj::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:var(--border);transform:scaleX(0);transform-origin:left;transition:transform 1.1s cubic-bezier(.2,.8,.2,1)}
+.proj.in::before{transform:scaleX(1)}
+.ring{width:18px;height:18px;border-radius:50%;border:2.5px solid var(--red);margin-top:6px;display:grid;place-items:center;transition:transform .5s cubic-bezier(.3,1.6,.5,1),box-shadow .4s}
+.ring::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--red)}
+.proj:hover .ring{transform:scale(1.3);box-shadow:0 0 0 6px color-mix(in srgb,var(--red) 18%,transparent)}
+.proj h3{margin:0;font-weight:500;font-size:1.3rem;letter-spacing:-.015em}
+.status{font-size:.8rem;color:var(--red);margin:2px 0 10px}
+.proj p{margin:0 0 14px}
+.tagrow{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}
+.tagrow span{font-size:.8rem;padding:3px 10px;border-radius:999px;border:1px solid var(--border);color:var(--soft);transition:border-color .3s,color .3s}
+.proj:hover .tagrow span{border-color:color-mix(in srgb,var(--red) 60%,transparent);color:var(--ink)}
+.proj:hover .tagrow span:nth-child(2){transition-delay:.04s}.proj:hover .tagrow span:nth-child(3){transition-delay:.08s}.proj:hover .tagrow span:nth-child(4){transition-delay:.12s}.proj:hover .tagrow span:nth-child(5){transition-delay:.16s}.proj:hover .tagrow span:nth-child(6){transition-delay:.2s}.proj:hover .tagrow span:nth-child(7){transition-delay:.24s}
+.tl{list-style:none;margin:0;padding:0;position:relative}
+.tl::before,.tl .fill{content:"";position:absolute;left:5px;top:8px;width:1px;background:var(--line)}
+.tl::before{bottom:8px}
+.tl .fill{background:var(--red);height:0;box-shadow:0 0 8px var(--red)}
+.tl li{display:grid;grid-template-columns:12px 110px minmax(0,1fr);gap:18px;padding:0 0 28px;position:relative}
+.tl i{width:11px;height:11px;border-radius:50%;background:var(--bg);border:1.5px solid var(--line);margin-top:6px;position:relative;z-index:1;transition:background .4s,border-color .4s,box-shadow .4s}
+.tl li.lit i{background:var(--red);border-color:var(--red);box-shadow:0 0 0 5px color-mix(in srgb,var(--red) 20%,transparent)}
+.tl time{color:var(--soft);font-size:.85rem;padding-top:3px}
+.tl h3{margin:0;font-weight:500;font-size:1.1rem}
+.tl .org{color:var(--soft);font-size:.92rem}
+.tl p{margin:6px 0 0;font-size:.97rem}
+.groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 36px}
+.groups h3{margin:0 0 10px;font-weight:500;font-size:1rem}
+.groups ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.groups li{opacity:0;transform:scale(.8);transition:opacity .5s ease,transform .6s cubic-bezier(.3,1.6,.5,1);transition-delay:var(--dl,0s)}
+.groups.in li{opacity:1;transform:none}
+.groups li button{display:flex;align-items:center;gap:8px;background:none;border:1px solid var(--border);border-radius:8px;padding:6px 11px;font-size:.9rem;cursor:pointer;transition:border-color .2s,transform .2s}
+.groups li button:hover{border-color:var(--ink);transform:translateY(-2px)}
+.groups li i{width:8px;height:8px;border-radius:50%}
+.groups li button[aria-expanded="true"]{border-color:var(--red);background:color-mix(in srgb,var(--red) 12%,transparent)}
+.sdet{margin-top:34px;border-top:1px solid var(--border);padding-top:26px;min-height:140px}
+.sdet-hint{display:flex;align-items:center;gap:12px;color:var(--soft);margin:0;font-size:.95rem}
+.tap{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--red);animation:tap 1.8s ease-out infinite}
+@keyframes tap{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--red) 55%,transparent)}100%{box-shadow:0 0 0 12px transparent}}
+.sdet-in > *{animation:noteIn .5s cubic-bezier(.2,.8,.2,1) both}
+.sdet-in > *:nth-child(2){animation-delay:.05s}.sdet-in > *:nth-child(3){animation-delay:.1s}.sdet-in > *:nth-child(4){animation-delay:.15s}
+.sdet-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:0 0 18px}
+.sdet h3{margin:0;font-weight:500;font-size:1.7rem;letter-spacing:-.03em}
+.sdet .badge{font-size:.78rem;padding:3px 10px;border-radius:999px;border:1px solid var(--red);color:var(--red)}
+.sdet-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 36px;margin:0 0 20px}
+.sdet-grid h4{margin:0 0 6px;font-size:.8rem;font-weight:500;color:var(--soft)}
+.sdet-grid p{margin:0;font-size:.98rem;line-height:1.65}
+@media (max-width:760px){.sdet-grid{grid-template-columns:1fr}}
+.mail{display:inline-block;position:relative;font-weight:500;font-size:clamp(1.6rem,4.4vw,3rem);letter-spacing:-.035em;color:var(--ink);text-decoration:none;margin:6px 0 28px;padding-bottom:4px;word-break:break-all;transition:color .3s}
+.mail::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--red);transform:scaleX(0);transform-origin:left;transition:transform 1.2s cubic-bezier(.2,.8,.2,1) .3s}
+.mail.in::after{transform:scaleX(1)}
+.mail:hover{color:var(--red)}
+.foot{position:relative;z-index:1;max-width:1160px;margin:0 auto;padding:0 28px 48px;color:var(--soft);font-size:.85rem}
+
+.peek{position:fixed;z-index:60;width:340px;background:var(--solid);border:1px solid var(--border);border-radius:12px;padding:14px 16px 12px;box-shadow:0 24px 60px rgba(0,0,0,.35);opacity:0;transform:translateY(6px) scale(.97);transform-origin:top left;transition:opacity .18s ease,transform .25s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.peek.on{opacity:1;transform:none}
+.peek .pp{font-size:.72rem;color:var(--soft);margin:0 0 6px}
+.peek h4{margin:0 0 6px;font-weight:500;font-size:1.15rem;letter-spacing:-.02em}
+.peek .pq{margin:10px 0 3px;font-size:.7rem;color:var(--soft);opacity:.8}
+.peek p{margin:0 0 8px;font-size:.86rem;line-height:1.55;color:var(--soft)}
+.peek svg{display:block;width:100%;height:auto}
+.peek .pl{stroke:var(--line-hi);stroke-width:1;stroke-dasharray:1;stroke-dashoffset:1;animation:pl .6s ease forwards;animation-delay:var(--d)}
+.peek .pn{transform-box:fill-box;transform-origin:center;transform:scale(0);animation:pn .45s cubic-bezier(.3,1.6,.5,1) forwards;animation-delay:var(--d)}
+@keyframes pl{to{stroke-dashoffset:0}} @keyframes pn{to{transform:scale(1)}}
+
+@media (max-width:900px){ .docs{grid-template-columns:1fr;gap:0;padding-top:56px} .tree{display:none} }
+@media (max-width:760px){
+  .groups{grid-template-columns:1fr}
+  .tl li{grid-template-columns:12px minmax(0,1fr);gap:4px 16px}
+  .tl time,.tl li > div{grid-column:2}
+  .cue{display:none}
+  .head{left:16px;right:16px;max-width:none} .head p{display:none}
+  .search{left:16px;right:16px;top:calc(72px + env(safe-area-inset-top,0px));width:auto}
+  .hud{left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px))} .hud .stats{display:none}
+  .zoombtns{left:auto;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+  .note{left:8px;right:8px;width:auto;top:auto;height:58vh;bottom:calc(8px + env(safe-area-inset-bottom,0px));transform:translateY(30px)}
+}
+
+</style>
+</head>
+<body>
+<div class="field" id="field" aria-hidden="true"></div>
+
+<div class="hero-wrap" id="heroWrap">
+<section class="hero" id="hero">
+  <canvas id="cv" aria-label="Grafo interativo da parte técnica de Felipe Santos"></canvas>
+  <div class="idb" id="idb">
+    <h1 class="name" id="title">Felipe Santos</h1>
+    <p class="role" id="roleLine"><span id="role">Data Engineer</span></p>
+  </div>
+  <div class="search">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="Buscar no grafo" autocomplete="off" aria-label="Buscar no grafo">
+    <ul class="results" id="res"></ul>
+  </div>
+  <aside class="note" id="note" aria-live="polite">
+    <div class="note-top mono">
+      <button type="button" id="nBack" aria-label="Voltar">←</button>
+      <span class="path" id="nPath"></span>
+      <button type="button" id="nClose" aria-label="Fechar nota">×</button>
+    </div>
+    <div class="note-body" id="nBody"></div>
+  </aside>
+  <a class="cue" href="#readme">Ler as notas<span></span></a>
+</section>
+</div>
+
+<div class="docs">
+  <nav class="tree mono" aria-label="Notas">
+    <p>felipe/</p>
+    <ul id="treeList">
+      <span class="ind" id="ind"></span>
+      <li><a href="#readme">README.md</a></li>
+      <li><a href="#projetos-doc">projetos.md</a></li>
+      <li><a href="#trajetoria-doc">trajetoria.md</a></li>
+      <li><a href="#stack-doc">stack.md</a></li>
+      <li><a href="#contato-doc">contato.md</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section class="doc" id="readme" data-c="felipe">
+      <p class="doc-path mono" data-type>felipe/README.md</p>
+      <h2 data-scr>Do dado bruto à produção</h2>
+      <p data-rv>Construo pipelines que levam o dado da fonte até quem decide: ingestão por <a class="wl" href="#" data-node="apis">APIs</a> e arquivos, <a class="wl" href="#" data-node="watermark">carga incremental</a>, processando só o que mudou desde a última execução, transformação em <a class="wl" href="#" data-node="sql">SQL</a> e <a class="wl" href="#" data-node="pyspark">PySpark</a> e orquestração com <a class="wl" href="#" data-node="airflow">Airflow</a>, tudo escrito em <a class="wl" href="#" data-node="python">Python modular</a>.</p>
+      <p data-rv style="--dl:.12s">E cuido do que vem depois: <a class="wl" href="#" data-node="dq">Data Quality</a> antes de liberar qualquer base, <a class="wl" href="#" data-node="alertas">alertas</a> quando algo sai do padrão e investigação pelos <a class="wl" href="#" data-node="logs">logs</a> até a <a class="wl" href="#" data-node="causa">causa raiz</a>, com cada mudança passando por revisão e homologação antes de chegar em produção.</p>
+      <dl class="facts" data-rv style="--dl:.24s">
+        <dt>Cargo atual</dt><dd>Analista de dados pleno</dd>
+        <dt>Foco</dt><dd>Engenharia de dados e DevOps de dados</dd>
+        <dt>Operações atendidas</dt><dd>Santander, Carrefour, Crefisa e Renner</dd>
+        <dt>Também no dia a dia</dt><dd><a class="wl" href="#" data-node="airflow3">Airflow 3</a>, <a class="wl" href="#" data-node="oracle">Oracle</a>, <a class="wl" href="#" data-node="k8s">Kubernetes</a> e <a class="wl" href="#" data-node="rancher">Rancher</a></dd>
+      </dl>
+      <div class="btns" data-rv style="--dl:.36s">
+        <a class="btn primary" id="cvBtn" href="#" download>Baixar currículo em PDF</a>
+        <a class="btn" href="#contato-doc">Falar comigo</a>
+      </div>
+    </section>
+
+    <section class="doc" id="projetos-doc" data-c="p01">
+      <p class="doc-path mono" data-type>felipe/projetos.md</p>
+      <h2 data-scr>Projetos</h2>
+      <p data-rv>Três repositórios que funcionam juntos sobre os dados públicos de preços de combustíveis da ANP: o pipeline que carrega o dado, a esteira que coloca ele para rodar e a camada que garante que está certo.</p>
+      <div class="proj" data-rv>
+        <span class="ring" aria-hidden="true"></span>
+        <div>
+          <h3>Pipeline de preços da ANP no Oracle</h3>
+          <p class="status">Engenharia de dados</p>
+          <p>Lê os arquivos semestrais da ANP, que mudam de layout com os anos, e carrega num modelo dimensional no Oracle. Os postos guardam histórico com SCD tipo 2, a carga é idempotente com MERGE, registros inválidos vão para quarentena com o motivo e cada arquivo é controlado por hash.</p>
+          <div class="tagrow"><span>Python</span><span>Oracle</span><span>SQL avançado</span><span>modelagem dimensional</span><span>SCD tipo 2</span><span>Docker</span></div>
+          <div class="btns"><a class="btn" href="https://github.com/fwlipesantos/precos-anp" target="_blank" rel="noopener">Ver no GitHub</a><button class="btn" type="button" data-node="p01">Ver no grafo</button></div>
+        </div>
+      </div>
+      <div class="proj" data-rv>
+        <span class="ring" aria-hidden="true"></span>
+        <div>
+          <h3>Esteira de dados no Airflow 3</h3>
+          <p class="status">Orquestração e entrega</p>
+          <p>Coloca o pipeline para rodar em DAGs no Airflow 3, com imagem Docker própria e os ambientes dev, homologação e produção no Kubernetes gerenciado pelo Rancher. Toda mudança passa por pull request, com testes e validação das DAGs no CI, e só chega em homologação e produção com aprovação.</p>
+          <div class="tagrow"><span>Airflow 3</span><span>Kubernetes</span><span>Rancher</span><span>Helm</span><span>GitHub Actions</span><span>shell script</span></div>
+          <div class="btns"><a class="btn" href="https://github.com/fwlipesantos/esteira-anp" target="_blank" rel="noopener">Ver no GitHub</a><button class="btn" type="button" data-node="p02">Ver no grafo</button></div>
+        </div>
+      </div>
+      <div class="proj" data-rv>
+        <span class="ring" aria-hidden="true"></span>
+        <div>
+          <h3>Qualidade e confiabilidade dos dados</h3>
+          <p class="status">Qualidade e operação</p>
+          <p>Checagens de qualidade depois de cada carga, alertas de falha, atraso e variação de volume, fichas de cada processo com origem, destino, janela e responsável, e um laboratório de incidentes com falhas investigadas do log até a causa raiz.</p>
+          <div class="tagrow"><span>Data Quality</span><span>SQL</span><span>alertas</span><span>documentação</span><span>investigação de falhas</span></div>
+          <div class="btns"><a class="btn" href="https://github.com/fwlipesantos/qualidade-anp" target="_blank" rel="noopener">Ver no GitHub</a><button class="btn" type="button" data-node="p03">Ver no grafo</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="doc" id="trajetoria-doc" data-c="deploy">
+      <p class="doc-path mono" data-type>felipe/trajetoria.md</p>
+      <h2 data-scr>Trajetória</h2>
+      <ol class="tl" id="tl">
+        <span class="fill" id="tlFill"></span>
+        <li><i></i><time class="mono">2026 até hoje</time><div data-rv><h3>Analista de dados pleno</h3><span class="org">Winover</span><p>Pipelines em produção com Python, Airflow, SQL, PySpark, Databricks e Microsoft Fabric. Integração por APIs, controles de Data Quality e investigação de falhas até a causa raiz.</p></div></li>
+        <li><i></i><time class="mono">2026</time><div data-rv><h3>Analista de BI júnior</h3><span class="org">Tel Contact Center</span><p>Dashboards gerenciais em Power BI para o Banco Safra, com modelagem e validação dos dados.</p></div></li>
+        <li><i></i><time class="mono">2025 a 2026</time><div data-rv><h3>Analista de MIS júnior</h3><span class="org">Winover</span><p>Rotinas SQL para bases operacionais, automações em Python e indicadores para cobrança e canais digitais.</p></div></li>
+        <li><i></i><time class="mono">2024 a 2025</time><div data-rv><h3>Assistente de planejamento</h3><span class="org">Winover</span><p>Monitoramento de indicadores, gestão de discadores e de vários CRMs.</p></div></li>
+        <li><i></i><time class="mono">2021 a 2022</time><div data-rv><h3>Suporte técnico</h3><span class="org">ICOMON Tecnologia</span><p>Atendimento a incidentes em SAP e sistemas corporativos.</p></div></li>
+      </ol>
+    </section>
+
+    <section class="doc" id="stack-doc" data-c="stack">
+      <p class="doc-path mono" data-type>felipe/stack.md</p>
+      <h2 data-scr>Stack</h2>
+      <p data-rv>As ferramentas que aplico no dia a dia. Passe o mouse em qualquer uma para ver por que eu uso e onde já usei, e clique para ver as conexões no grafo.</p>
+      <div class="groups" id="groups"></div>
+    </section>
+
+    <section class="doc" id="contato-doc" data-c="prod">
+      <p class="doc-path mono" data-type>felipe/contato.md</p>
+      <h2 data-scr>Vamos conversar</h2>
+      <p data-rv>Aberto a vagas de engenharia de dados. O jeito mais rápido de falar comigo é pelo e-mail.</p>
+      <a class="mail" id="mailBig" href="#"></a>
+      <div class="btns" data-rv style="--dl:.2s">
+        <a class="btn" id="liBtn" href="#" target="_blank" rel="noopener">LinkedIn</a>
+        <a class="btn" id="ghBtn" href="#" target="_blank" rel="noopener">GitHub</a>
+        <a class="btn primary" id="cvBtn2" href="#" download>Baixar currículo em PDF</a>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="peek" id="peek" aria-hidden="true"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script>
+const CONTATO = {
+  email:     "felipedesantos04@outlook.com",
+  linkedin:  "https://www.linkedin.com/in/felipesantosss",
+  github:    "https://github.com/fwlipesantos",
+  curriculo: "curriculo-felipe-santos.pdf"
+};
+
+const RAW_NODES = `felipe|Felipe Santos|core
+stack|Stack|hub
+deploy|Deploy|hub
+projetos|Projetos|hub
+python|Python|exp
+airflow|Airflow|exp
+sql|SQL|exp
+git|Git|exp
+linux|Linux|exp
+containers|Containers|exp
+pyspark|PySpark|exp
+databricks|Databricks|exp
+fabric|Microsoft Fabric|exp
+powerbi|Power BI|exp
+apis|APIs|exp
+dq|Data Quality|exp
+pacotes|pacotes|con
+modulos|módulos|con
+funcoes|funções reutilizáveis|con
+config|configuração separada|con
+argparse|argparse|con
+dag|DAG|con
+retries|retries|con
+alertas|alertas|con
+dependencias|dependências|con
+procs|procedures|con
+bulk|BULK INSERT|con
+temp|tabelas temporárias|con
+reproc|reprocessamento por data|con
+pivot|PIVOT|con
+branch|branch|con
+revisao|revisão de código|con
+shell|shell script|con
+onprem|on-premise|con
+mudancas|controle de mudanças|con
+mounts|mounts|con
+docker|Docker|con
+spark|Spark|con
+conciliacao|conciliação|con
+volume|validação de volume|con
+integracao|integração de sistemas|con
+telegram|alertas no Telegram|con
+kpis|KPIs|con
+dashboards|dashboards|con
+commit|commit|exp
+pr|pull request|exp
+dev|dev|exp
+hml|homologação|exp
+prod|produção|exp
+rollback|rollback|con
+logs|logs|con
+causa|causa raiz|con
+airflow3|Airflow 3|exp
+oracle|Oracle|exp
+plano|plano de execução|con
+k8s|Kubernetes|exp
+rancher|Rancher|exp
+gha|GitHub Actions|exp
+segredos|variáveis e segredos|con
+p01|Pipeline ANP|proj
+p02|Esteira ANP|proj
+p03|Qualidade ANP|proj
+watermark|carga incremental|con
+delta|Delta Lake|exp`;
+const RAW_EDGES = `felipe>stack deploy projetos python airflow sql
+stack>python airflow sql git linux containers pyspark databricks fabric powerbi apis dq
+python>pacotes modulos funcoes config argparse
+pacotes>modulos
+modulos>funcoes
+airflow>dag retries alertas dependencias airflow3
+dag>dependencias
+sql>procs bulk temp reproc pivot oracle
+procs>reproc temp
+oracle>plano
+git>branch pr revisao
+pr>revisao
+linux>shell onprem mudancas mounts
+onprem>mudancas
+containers>docker k8s
+k8s>rancher
+pyspark>spark
+databricks>spark
+spark>delta
+fabric>powerbi
+powerbi>dashboards kpis
+apis>integracao telegram
+alertas>telegram
+dq>conciliacao volume
+deploy>commit pr dev hml prod
+commit>pr
+pr>dev
+dev>hml
+hml>prod volume
+prod>logs rollback causa alertas
+logs>causa
+projetos>p01 p02 p03
+p01>python sql oracle procs plano watermark dq conciliacao
+gha>pr
+p02>airflow3 dag k8s rancher gha docker segredos dev hml prod pr p01
+p03>dq volume alertas telegram logs causa p01 p02`;
+
+const NOTES = {
+  felipe:"O centro do grafo. Cada nó é uma ferramenta, um conceito ou um projeto da minha parte técnica. Escrevo processos em [[python]] modular, orquestro com [[airflow]], consulto com [[sql]] e acompanho o que acontece depois do deploy: [[logs]], falhas e [[causa]].\n\nComece por [[stack]], [[deploy]] ou [[projetos]].",
+  stack:"As ferramentas do dia a dia: [[python]], [[airflow]], [[sql]], [[git]], [[linux]], [[containers]], [[pyspark]], [[databricks]], [[fabric]], [[powerbi]], [[apis]] e [[dq]].",
+  python:"Código organizado em [[pacotes]], [[modulos]] e [[funcoes]], com [[config]]. Os scripts recebem parâmetros por [[argparse]], o que permite reprocessar qualquer data.",
+  airflow:"[[dag]] com [[dependencias]], [[retries]], [[alertas]] e tratamento de falhas, rodando todos os dias, incluindo o [[airflow3]], que também uso na [[p02]].",
+  sql:"[[procs]], [[temp]], [[bulk]], [[pivot]] e [[reproc]] em SQL Server e [[oracle]], sempre de olho no [[plano]].",
+  git:"[[branch]], [[pr]] e [[revisao]] em tudo o que segue para [[prod]].",
+  linux:"[[shell]] e operação de servidores em ambiente [[onprem]] com [[mudancas]], incluindo a verificação de [[mounts]].",
+  containers:"Operação de processos em [[docker]] e em [[k8s]] gerenciado pelo [[rancher]], o mesmo modelo usado na [[p02]].",
+  dq:"[[conciliacao]] entre fontes e [[volume]] antes de liberar qualquer base para consumo.",
+  apis:"[[integracao]] entre sistemas e ingestão de dados por API, com [[telegram]] quando um arquivo ou serviço de origem falha.",
+  deploy:"O caminho de qualquer mudança: [[commit]], [[pr]], [[dev]], [[hml]] e [[prod]]. Quando algo quebra, a correção faz o mesmo caminho, com [[rollback]] se for preciso.",
+  pr:"Toda mudança passa por [[branch]], pull request e [[revisao]] antes de seguir para [[dev]].",
+  hml:"Validação com dados próximos do real, incluindo [[volume]], antes de liberar para [[prod]].",
+  prod:"O processo no ar e monitorado com [[alertas]]. Falhas são investigadas pelos [[logs]] até a [[causa]], e nunca corrigidas direto em produção.",
+  projetos:"Três projetos públicos: [[p01]], [[p02]] e [[p03]].",
+  p01:"Pipeline em [[python]] que carrega os preços da ANP num modelo dimensional no [[oracle]], com [[watermark]], [[procs|MERGE]] idempotente, SCD tipo 2 nos postos e quarentena de registros inválidos. Otimizado com [[plano]].",
+  p02:"Roda o [[p01]] em DAGs no [[airflow3]], com imagem [[docker]] e ambientes [[dev]], [[hml]] e [[prod]] no [[k8s]] gerenciado pelo [[rancher]]. Toda mudança passa por [[pr]] e é promovida pelo [[gha]].",
+  p03:"Checagens de [[dq]] depois de cada carga, [[alertas]] de falha, atraso e [[volume]] no [[telegram]], fichas dos processos e um laboratório de incidentes investigados pelos [[logs]] até a [[causa]].",
+  airflow3:"Uso no trabalho e na [[p02]], em cima do que já faço com [[airflow]] no dia a dia.",
+  oracle:"Uso junto com o que já faço em [[sql]], com atenção a [[plano]] e performance. Também é o banco da [[p01]].",
+  k8s:"Ambientes [[dev]], [[hml]] e [[prod]] em namespaces separados, com [[segredos]] por ambiente. Mesmo modelo da [[p02]].",
+  rancher:"Gerenciamento do cluster [[k8s]]: deploy, variáveis, consulta a logs e reinício controlado.",
+  gha:"Integração e entrega: testes no [[pr]], imagem [[docker]] por versão e promoção entre ambientes, como na [[p02]].",
+  logs:"Primeiro lugar onde olho quando algo falha em [[prod]]: o log mostra em que módulo a execução parou e leva até a [[causa]].",
+  causa:"Encontrar a causa raiz significa seguir a falha pelos [[logs]] através de vários módulos, até o ponto em que o problema começou, e só então corrigir."
+};
+
+const nodes = RAW_NODES.trim().split("\n").map(l => { const [id,label,type] = l.split("|"); return {id,label,type}; });
+const byId = Object.fromEntries(nodes.map(n => [n.id, n]));
+const links = [], seen = new Set();
+RAW_EDGES.trim().split("\n").forEach(l => {
+  const [a, rest] = l.split(">"); if (!byId[a]) return;
+  rest.trim().split(/\s+/).forEach(b => { const k = [a,b].sort().join("|"); if (seen.has(k) || !byId[b]) return; seen.add(k); links.push({source:a, target:b, hv:0, ov:0, ph:Math.random() * 6.283, k:.75 + Math.random() * .7}); });
+});
+const adj = Object.fromEntries(nodes.map(n => [n.id, new Set()]));
+links.forEach(l => { adj[l.source].add(l.target); adj[l.target].add(l.source); });
+
+const depth = {felipe:0}, qq = ["felipe"];
+while (qq.length){ const c = qq.shift(); adj[c].forEach(n => { if (depth[n] == null){ depth[n] = depth[c] + 1; qq.push(n); } }); }
+const reduce = false;
+const T0 = performance.now() + 250;
+nodes.forEach(n => {
+  const deg = adj[n.id].size, d = depth[n.id] ?? 4;
+  n.r = n.type === "core" ? 13 : n.type === "hub" ? 8 : n.type === "proj" ? 6.5 : n.type === "exp" ? 4.4 + Math.min(deg, 10) * .22 : 3.3 + Math.min(deg, 6) * .15;
+  const a = Math.random() * Math.PI * 2; n.x = Math.cos(a) * d * 48; n.y = Math.sin(a) * d * 48;
+  n.ph = Math.random() * 1000; n.hv = 1; n.sv = 1; n.lv = 0;
+  n.born = reduce ? 0 : T0 + d * 230 + Math.random() * 180;
+});
+byId.felipe.fx = 0; byId.felipe.fy = 0;
+nodes.forEach(n => {
+  n.z = n.type === "core" ? 1 : n.type === "hub" ? 1.05 : n.type === "proj" ? 1.15 :
+        n.type === "exp" ? .85 + Math.random() * .4 : .55 + Math.random() * .85;
+});
+const dust = Array.from({length:170}, () => ({x:Math.random(), y:Math.random(), z:.12 + Math.random() * .45, s:.5 + Math.random() * 1.3, a:.15 + Math.random() * .35, ph:Math.random() * 6.28}));
+let ptx = 0, pty = 0, pmx = 0, pmy = 0, sY = 0, readyT = 0;
+const heroWrap = document.getElementById("heroWrap");
+addEventListener("pointermove", e => { ptx = (e.clientX / innerWidth - .5) * 2; pty = (e.clientY / innerHeight - .5) * 2; }, {passive:true});
+
+const heroEl = document.getElementById("hero"), cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+let W = 0, H = 0, dpr = 1, C = {};
+function readColors(){ const s = getComputedStyle(document.documentElement); ["bg","line","line-hi","red","gray","ink","soft"].forEach(k => C[k] = s.getPropertyValue("--" + k).trim()); }
+function resize(){ dpr = Math.min(devicePixelRatio || 1, 2); W = heroEl.clientWidth; H = heroEl.clientHeight; cv.width = W * dpr; cv.height = H * dpr; }
+readColors(); resize();
+matchMedia("(prefers-color-scheme: light)").addEventListener("change", readColors);
+
+let mouse = null, hover = null, active = null;
+const sim = d3.forceSimulation(nodes)
+  .velocityDecay(.3).alpha(.8).alphaDecay(.014).alphaTarget(reduce ? 0 : .02)
+  .force("link", d3.forceLink(links).id(d => d.id).distance(l => {
+    const t = [l.source.type, l.target.type];
+    return (t.includes("core") ? 130 : t.includes("hub") ? 70 : t.includes("proj") ? 58 : 42) * l.k; }).strength(.42))
+  .force("charge", d3.forceManyBody().strength(d => d.type === "core" ? -560 : d.type === "hub" ? -280 : d.type === "proj" ? -170 : -78).distanceMax(440))
+  .force("collide", d3.forceCollide(d => d.r + 6).strength(.7))
+  .force("x", d3.forceX(0).strength(.004))
+  .force("y", d3.forceY(0).strength(.075))
+  .force("drift", () => {
+    if (reduce) return;
+    const t = performance.now() * .00017;
+    for (const n of nodes){
+      if (n.fx != null) continue;
+      n.vx += (Math.sin(t + n.ph) + Math.sin(t * 2.3 + n.ph * .7) * .5 + Math.sin(t * .4 + n.y * .004) * .6) * .032;
+      n.vy += (Math.cos(t * 1.3 + n.ph * 1.7) + Math.cos(t * 2.9 + n.ph * .3) * .5 + Math.cos(t * .5 + n.x * .004) * .6) * .032;
+    }
+  })
+  .force("mouse", () => {
+    if (!mouse || reduce) return;
+    for (const n of nodes){
+      if (n.fx != null || n === hover) continue;
+      const dx = n.x - mouse.x, dy = n.y - mouse.y, d = Math.hypot(dx, dy);
+      if (d < 110 && d > .5){ const f = (1 - d / 110); n.vx += (dx / d * .22 - dy / d * .3) * f; n.vy += (dy / d * .22 + dx / d * .3) * f; }
+    }
+  })
+  ;
+if (reduce){ sim.stop(); for (let i = 0; i < 400; i++) sim.tick(); }
+
+let T = d3.zoomIdentity.translate(W/2, H/2).scale(Math.min(W, H) / 800);
+const zoom = d3.zoom().scaleExtent([.3, 8])
+  .filter(e => e.type === "wheel" ? (e.ctrlKey || e.metaKey) : e.type === "touchstart" ? e.touches.length > 1 : !e.button)
+  .on("zoom", e => { T = e.transform; });
+const sel = d3.select(cv);
+
+function findNode(px, py){
+  const [x, y] = T.invert([px, py]); let best = null, bd = Infinity;
+  for (const n of nodes){ const d = Math.hypot((n.rx ?? n.x) - x, (n.ry ?? n.y) - y); if (d < n.r * n.sv + 8 / T.k && d < bd){ bd = d; best = n; } }
+  return best;
+}
+sel.call(d3.drag()
+  .subject(e => findNode(e.x, e.y))
+  .on("start", e => { if (!e.active) sim.alphaTarget(.2).restart(); e.subject.fx = e.subject.x; e.subject.fy = e.subject.y; cv.classList.add("grabbing"); })
+  .on("drag", e => { const [x, y] = T.invert([e.x, e.y]); e.subject.fx = x; e.subject.fy = y; })
+  .on("end", e => { if (!e.active) sim.alphaTarget(reduce ? 0 : .02); const pin = e.subject.id === "felipe"; e.subject.fx = pin ? 0 : null; e.subject.fy = pin ? 0 : null; cv.classList.remove("grabbing"); }))
+  ;
+
+cv.addEventListener("pointermove", e => {
+  const [x, y] = T.invert([e.offsetX, e.offsetY]); mouse = {x, y};
+  const n = findNode(e.offsetX, e.offsetY);
+  if (n !== hover){ hover = n; cv.classList.toggle("pointer", !!n); }
+});
+cv.addEventListener("pointerleave", () => { hover = null; mouse = null; });
+cv.addEventListener("click", e => { const n = findNode(e.offsetX, e.offsetY); if (n) open(n.id, true); });
+
+function focusOn(n){}
+function fit(){
+  const xs = nodes.map(n => n.x), ys = nodes.map(n => n.y);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const k = Math.min(W / (x1 - x0 + 140), H / (y1 - y0 + 180), 2);
+  sel.transition().duration(reduce ? 0 : 900).ease(d3.easeCubicInOut).call(zoom.transform, d3.zoomIdentity.translate(W/2, H/2).scale(k).translate(-(x0+x1)/2, -(y0+y1)/2));
+}
+
+const noteEl = document.getElementById("note"), nBody = document.getElementById("nBody"), nPath = document.getElementById("nPath");
+const hist = [];
+function pathOf(id){
+  if (id === "felipe") return "felipe/README.md";
+  const hub = ["stack","deploy","projetos"].find(h => h === id || adj[h].has(id)) || "notas";
+  return hub === id ? `felipe/${id}/index.md` : `felipe/${hub}/${id}.md`;
+}
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const plain = s => s.replace(/\[\[(\w+)(?:\|([^\]]+))?\]\]/g, (m, id, lab) => lab || (byId[id] ? byId[id].label : id));
+function render(txt){
+  return esc(txt).split("\n\n").map(p => "<p>" + p.replace(/\[\[(\w+)(?:\|([^\]]+))?\]\]/g, (m, id, lab) =>
+    byId[id] ? `<a class="wl" href="#" data-id="${id}">${lab || byId[id].label}</a>` : (lab || id)) + "</p>").join("");
+}
+const dotColor = n => n.type === "con" ? "var(--gray)" : "var(--red)";
+const typeTag = {core:"perfil",hub:"índice",exp:"uso em produção",con:"conceito",proj:"projeto"};
+function noteText(id){ return NOTES[id] || "Conceito que aparece no meu trabalho. Veja abaixo onde ele se conecta."; }
+function open(id, push){
+  const n = byId[id]; if (!n) return;
+  cam = null; pilot = null; lastInteract = performance.now();
+  if (push && active && active.id !== id) hist.push(active.id);
+  active = n;
+  const extra = "";
+  let body = `<h2>${esc(n.label)}</h2><div class="tags"><span class="${n.type === "con" ? "" : "r"}">${typeTag[n.type]}</span>${extra}<span>${adj[id].size} conexões</span></div>`;
+  body += NOTES[id] ? render(NOTES[id]) : `<p>${esc(noteText(id))}</p>`;
+  const nb = [...adj[id]].map(k => byId[k]).sort((a, b) => adj[b.id].size - adj[a.id].size);
+  body += `<h3 class="mono">Conexões</h3><div class="links">${nb.map(m => `<button type="button" data-id="${m.id}"><i style="background:${dotColor(m)}"></i>${esc(m.label)}</button>`).join("")}</div>`;
+  nBody.innerHTML = body; nBody.scrollTop = 0;
+  nPath.textContent = pathOf(id);
+  document.getElementById("nBack").disabled = !hist.length;
+  noteEl.classList.add("on");
+  focusOn(n);
+}
+nBody.addEventListener("click", e => { const t = e.target.closest("[data-id]"); if (t){ e.preventDefault(); open(t.dataset.id, true); } });
+document.getElementById("nClose").onclick = () => { noteEl.classList.remove("on"); active = null; hist.length = 0; };
+document.getElementById("nBack").onclick = () => { const id = hist.pop(); if (id) open(id, false); };
+addEventListener("keydown", e => { if (e.key === "Escape" && noteEl.classList.contains("on")) document.getElementById("nClose").click(); });
+
+const q = document.getElementById("q"), res = document.getElementById("res");
+const norm = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+let found = [], fi = 0;
+q.addEventListener("input", () => {
+  const v = norm(q.value.trim());
+  found = v ? nodes.filter(n => norm(n.label).includes(v)).slice(0, 8) : []; fi = 0;
+  res.innerHTML = found.map((n, i) => `<li><button type="button" data-id="${n.id}" class="${i === 0 ? "act" : ""}"><i style="background:${dotColor(n)}"></i>${esc(n.label)}</button></li>`).join("");
+  res.classList.toggle("on", found.length > 0);
+});
+q.addEventListener("keydown", e => {
+  if (!found.length) return;
+  if (e.key === "ArrowDown" || e.key === "ArrowUp"){ e.preventDefault(); fi = (fi + (e.key === "ArrowDown" ? 1 : -1) + found.length) % found.length; [...res.querySelectorAll("button")].forEach((b, i) => b.classList.toggle("act", i === fi)); }
+  if (e.key === "Enter"){ open(found[fi].id, true); res.classList.remove("on"); q.blur(); }
+});
+res.addEventListener("click", e => { const b = e.target.closest("button"); if (b){ open(b.dataset.id, true); res.classList.remove("on"); q.value = ""; } });
+
+let cam = null, pilot = null, lastInteract = performance.now(), tourEnd = 0;
+const ioE = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+function curView(){ return {x:(W/2 - T.x) / T.k, y:(H/2 - T.y) / T.k, w:Math.min(W, H) / T.k}; }
+function applyView(v){ const k = Math.min(W, H) / v.w; T = d3.zoomIdentity.translate(W/2 - v.x * k, H/2 - v.y * k).scale(k); sel.property("__zoom", T); }
+function fitView(){
+  const xs = nodes.map(n => n.x), ys = nodes.map(n => n.y);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const k = Math.min(W / (x1 - x0 + 140), H / (y1 - y0 + 180), 2);
+  return {x:(x0 + x1) / 2, y:(y0 + y1) / 2, w:Math.min(W, H) / k};
+}
+function makeTour(){
+  const path = [byId.felipe]; let cur = byId.felipe;
+  for (let i = 0; i < 4; i++){
+    let opts = [...adj[cur.id]].map(k => byId[k]).filter(n => !path.includes(n) && n.type !== "core");
+    if (i === 0) opts = opts.filter(n => n.type === "hub" || n.type === "exp");
+    if (!opts.length) break;
+    cur = opts[(Math.random() * opts.length) | 0]; path.push(cur);
+  }
+  const steps = path.map((n, i) => ({node:n, w: i === 0 ? 320 : 260, dur: i === 0 ? 2200 : 1800, hold: i === 0 ? 400 : 900, bump: i === 0 ? 0 : .4}));
+  steps.push({view:fitView, dur:2300, hold:0, bump:0});
+  return steps;
+}
+function runTour(steps){ cam = {steps, i:0, t0:performance.now(), from:curView()}; }
+function stepCam(now){
+  if (!cam) return;
+  const st = cam.steps[cam.i], tg = st.node ? {x:st.node.x, y:st.node.y, w:st.w} : st.view();
+  const k = clamp((now - cam.t0) / st.dur), e = ioE(k), f = cam.from;
+  const w = Math.exp(Math.log(f.w) + (Math.log(tg.w) - Math.log(f.w)) * e) * (1 + st.bump * Math.sin(Math.PI * e));
+  applyView({x:f.x + (tg.x - f.x) * e, y:f.y + (tg.y - f.y) * e, w});
+  if (k > .55) pilot = st.node && st.node.type !== "core" ? st.node : (st.node ? null : null);
+  if (now - cam.t0 >= st.dur + st.hold){
+    cam.i++; cam.t0 = now; cam.from = curView();
+    if (cam.i >= cam.steps.length){ cam = null; pilot = null; tourEnd = now; }
+  }
+}
+let fitK = 0, fitX = 0, fitY = 0;
+function autoFit(){
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  for (const n of nodes){ if (n.x < x0) x0 = n.x; if (n.x > x1) x1 = n.x; if (n.y < y0) y0 = n.y; if (n.y > y1) y1 = n.y; }
+  const k = Math.min(2.2, (W * .97) / (x1 - x0 + 40), (H * 1.12) / (y1 - y0 + 40));
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  if (!fitK){ fitK = k; fitX = cx; fitY = cy; }
+  fitK += (k - fitK) * .035; fitX += (cx - fitX) * .035; fitY += (cy - fitY) * .035;
+  T = d3.zoomIdentity.translate(W / 2 - fitX * fitK, H / 2 - fitY * fitK).scale(fitK);
+}
+function stopCam(){ if (cam){ cam = null; pilot = null; tourEnd = performance.now(); } lastInteract = performance.now(); }
+cv.addEventListener("pointerdown", stopCam);
+cv.addEventListener("wheel", e => { if (e.ctrlKey || e.metaKey) stopCam(); }, {passive:true});
+q.addEventListener("focus", stopCam);
+
+const pulses = [];
+const ease = k => 1 - Math.pow(1 - k, 3);
+const back = k => { const c = 1.6; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); };
+const clamp = k => Math.max(0, Math.min(1, k));
+let heroVisible = true, lastSpawn = 0, bloomDone = reduce, waveT = -1e9;
+
+function draw(now){
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  pmx += (ptx - pmx) * .05; pmy += (pty - pmy) * .05;
+  const hp = clamp(sY / Math.max(1, heroWrap.offsetHeight - H)), scY = hp * H;
+  ctx.fillStyle = C.gray;
+  for (const d of dust){
+    const x = ((d.x * W + pmx * -140 * d.z + now * .004 * d.z * 10) % W + W) % W;
+    const y = ((d.y * H + pmy * -140 * d.z - scY * d.z * 1.4) % H + H) % H;
+    ctx.globalAlpha = d.a * (.6 + .4 * Math.sin(now * .0012 + d.ph));
+    ctx.beginPath(); ctx.arc(x, y, d.s * (.6 + d.z), 0, 6.283); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const offX = pmx * -90, offY = pmy * -90 - scY * .55;
+  for (const n of nodes){ n.ox = n.x; n.oy = n.y; n.x = n.x + offX * (n.z - 1) / T.k; n.y = n.y + offY * (n.z - 1) / T.k; n.rx = n.x; n.ry = n.y; }
+  const sp = hp, ds = 1 + ease(sp) * 2.6;
+  if (sp > 0){ ctx.translate(W/2, H/2); ctx.scale(ds, ds); ctx.translate(-W/2, -H/2); }
+  cv.style.opacity = 1 - sp * .9;
+  ctx.translate(T.x, T.y); ctx.scale(T.k, T.k);
+  const focus = hover || active || pilot, near = focus ? adj[focus.id] : null;
+  const lit = n => !focus || n === focus || near.has(n.id);
+  const we = now - waveT;
+  const act = n => { if (we < 0 || we > 3200) return 0; const x = (we - (depth[n.id] ?? 4) * 210) / 150; return Math.exp(-x * x); };
+  if (we >= 0 && we < 2600){
+    const f = byId.felipe, k = we / 2600;
+    ctx.globalAlpha = (1 - k) * .35; ctx.strokeStyle = C.red; ctx.lineWidth = 1.2 / T.k;
+    ctx.beginPath(); ctx.arc(f.x, f.y, 14 + ease(k) * 420, 0, 6.283); ctx.stroke();
+  }
+
+  for (const n of nodes){
+    n.b = reduce ? 1 : clamp((now - n.born) / 700);
+    n.hv += ((lit(n) ? 1 : .1) - n.hv) * .1;
+    n.sv += ((n === hover ? 1.45 : n === active ? 1.3 : 1) - n.sv) * .16;
+    const show = (n === hover || n === pilot) && n.type !== "core";
+    n.lv += ((show && n.b > .9 ? 1 : 0) - n.lv) * .1;
+  }
+
+  for (const l of links){
+    const on = focus && (l.source === focus || l.target === focus);
+    l.hv += ((focus ? (on ? 0 : .06) : .6) - l.hv) * .1;
+    l.ov += ((on ? 1 : 0) - l.ov) * .12;
+    const b = ease(Math.min(l.source.b, l.target.b));
+    if (b <= 0) continue;
+    const heavy = adj[l.source.id].size >= adj[l.target.id].size, A = heavy ? l.source : l.target, B = heavy ? l.target : l.source;
+    const sx = A.x, sy = A.y, ex = sx + (B.x - sx) * b, ey = sy + (B.y - sy) * b;
+    const dx = ex - sx, dy = ey - sy, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
+    const bend = Math.sin(now * .00055 + l.ph) * .16 + Math.sin(now * .0013 + l.ph * 2) * .04;
+    l.g = {sx, sy, cx:(sx + ex) / 2 + nx * bend * L, cy:(sy + ey) / 2 + ny * bend * L, ex, ey, A, B};
+    const zf = .45 + .55 * Math.min(1, (l.source.z + l.target.z) / 2);
+    if (l.hv > .01){ ctx.globalAlpha = l.hv * zf; ctx.fillStyle = C.line; tendril(l.g, 1.15 / T.k, .12 / T.k); }
+    if (l.ov > .01){ ctx.globalAlpha = l.ov; ctx.fillStyle = C["line-hi"]; tendril(l.g, 1.6 / T.k, .25 / T.k); }
+    const wa = Math.min(act(l.source), act(l.target)) * 2 * Math.max(l.source.hv, l.target.hv);
+    if (wa > .02){ ctx.globalAlpha = Math.min(.8, wa); ctx.fillStyle = C.red; tendril(l.g, 1.5 / T.k, .2 / T.k); }
+  }
+
+  for (const p of pulses){
+    const g = p.l.g; if (!g) continue;
+    const fromA = p.fwd === (g.A === p.l.source);
+    const k = ease(p.t), fade = Math.sin(p.t * Math.PI) * (focus && !(p.l.source === focus || p.l.target === focus) ? .08 : 1);
+    ctx.strokeStyle = C.red; ctx.lineCap = "round";
+    let px = null, py = null;
+    for (let j = 0; j <= 7; j++){
+      const u0 = Math.max(0, k - .18 + j * .18 / 7), u = fromA ? u0 : 1 - u0, v = 1 - u;
+      const x = v * v * g.sx + 2 * v * u * g.cx + u * u * g.ex, y = v * v * g.sy + 2 * v * u * g.cy + u * u * g.ey;
+      if (px !== null){ ctx.globalAlpha = fade * (j / 7) * .9; ctx.lineWidth = (.5 + j / 7 * 1.3) / Math.max(T.k, .8); ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(x, y); ctx.stroke(); }
+      px = x; py = y;
+    }
+  }
+
+  for (const n of nodes){
+    if (n.b <= 0) continue;
+    const a = act(n), r = n.r * n.sv * (reduce ? 1 : back(n.b)) * (1 + a * .25) * (.7 + .3 * n.z) * (n.type === "core" ? 1 + Math.sin(now * .0016) * .07 : 1), col = n.type === "con" ? C.gray : C.red;
+    const zf = .45 + .55 * Math.min(1, n.z);
+    ctx.globalAlpha = n.hv * Math.min(1, n.b * 2) * zf;
+    if (n === focus){ ctx.lineWidth = 1 / T.k; ctx.strokeStyle = C.ink; ctx.beginPath(); ctx.arc(n.x, n.y, r + 5 / T.k + 2, 0, 6.283); ctx.stroke(); }
+    { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, 6.283); ctx.fill(); ctx.lineWidth = 2 / T.k; ctx.strokeStyle = C.bg; ctx.stroke(); }
+  }
+
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for (const n of nodes){
+    if (n.lv < .02) continue;
+    const big = n.type === "core" || n.type === "hub";
+    const fs = (n === pilot ? 15 : n.type === "core" ? 15 : big ? 12.5 : 12) / Math.max(T.k, .75);
+    ctx.font = `${big ? 500 : 400} ${fs}px Geist, system-ui, sans-serif`;
+    ctx.globalAlpha = n.lv * (n.hv > .5 ? 1 : .25);
+    ctx.fillStyle = n === focus || n.type === "core" ? C.ink : C.soft;
+    ctx.fillText(n.label, n.x, n.y + n.r * n.sv + 5 / T.k + (1 - n.lv) * 4 / T.k);
+  }
+  ctx.globalAlpha = 1;
+  for (const n of nodes){ n.x = n.ox; n.y = n.oy; }
+}
+
+function tendril(g, w0, w1){
+  const dx = g.ex - g.sx, dy = g.ey - g.sy, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L, wm = (w0 + w1) / 2;
+  ctx.beginPath();
+  ctx.moveTo(g.sx + nx * w0, g.sy + ny * w0);
+  ctx.quadraticCurveTo(g.cx + nx * wm, g.cy + ny * wm, g.ex + nx * w1, g.ey + ny * w1);
+  ctx.lineTo(g.ex - nx * w1, g.ey - ny * w1);
+  ctx.quadraticCurveTo(g.cx - nx * wm, g.cy - ny * wm, g.sx - nx * w0, g.sy - ny * w0);
+  ctx.closePath(); ctx.fill();
+}
+
+function spawnPulse(){
+  const f0 = active || pilot;
+  const pool = f0 ? links.filter(l => l.source === f0 || l.target === f0) : links;
+  const l = pool[(Math.random() * pool.length) | 0]; if (!l) return;
+  pulses.push({l, t:0, fwd: f0 ? l.source === f0 : Math.random() < .5, sp:.008 + Math.random() * .008});
+}
+function loop(now){
+  if (!bloomDone && nodes.every(n => now - n.born > 700)){ bloomDone = true; document.body.classList.add("ready"); readyT = now; }
+  sY += (scrollY - sY) * .04;
+  stepCam(now);
+  autoFit();
+  if (bloomDone && now - waveT > 7000) waveT = now + 200;
+  if (bloomDone && now - lastSpawn > 140 && pulses.length < 18){ spawnPulse(); lastSpawn = now; }
+  for (let i = pulses.length - 1; i >= 0; i--){ pulses[i].t += pulses[i].sp; if (pulses[i].t >= 1) pulses.splice(i, 1); }
+  if (heroVisible) draw(now);
+  requestAnimationFrame(loop);
+}
+new IntersectionObserver(es => { heroVisible = es[0].isIntersecting; }).observe(heroEl);
+addEventListener("resize", () => { resize(); });
+if (reduce){ document.body.classList.add("ready"); }
+requestAnimationFrame(loop);
+
+const GLY = "01<>/{}[]=+*#%_$";
+function scramble(el, dur){
+  const txt = el.dataset.txt || (el.dataset.txt = el.textContent);
+  if (reduce){ el.textContent = txt; return; }
+  const t0 = performance.now(); dur = dur || 900;
+  (function f(now){
+    const k = Math.min(1, (now - t0) / dur), n = Math.floor(ease(k) * txt.length);
+    let out = txt.slice(0, n);
+    for (let i = n; i < Math.min(txt.length, n + 10); i++) out += txt[i] === " " ? " " : GLY[(Math.random() * GLY.length) | 0];
+    el.textContent = out;
+    if (k < 1) requestAnimationFrame(f); else el.textContent = txt;
+  })(t0);
+}
+function typeOut(el){
+  const txt = el.dataset.txt || (el.dataset.txt = el.textContent);
+  if (reduce){ el.textContent = txt; return; }
+  el.textContent = ""; el.classList.add("typing"); let i = 0;
+  const iv = setInterval(() => { el.textContent = txt.slice(0, ++i); if (i >= txt.length){ clearInterval(iv); setTimeout(() => el.classList.remove("typing"), 900); } }, 28);
+}
+document.querySelectorAll("[data-type]").forEach(el => { el.dataset.txt = el.textContent; if (!reduce) el.textContent = ""; });
+
+document.getElementById("mailBig").href = "mailto:" + CONTATO.email;
+document.getElementById("mailBig").textContent = CONTATO.email;
+document.getElementById("liBtn").href = CONTATO.linkedin;
+document.getElementById("ghBtn").href = CONTATO.github;
+["cvBtn","cvBtn2"].forEach(id => document.getElementById(id).href = CONTATO.curriculo);
+const GROUPS = [
+  ["Código e orquestração", ["python","airflow","airflow3","git","gha"]],
+  ["Bancos de dados", ["sql","oracle","procs","plano"]],
+  ["Entrega e operação", ["linux","containers","docker","k8s","rancher","onprem"]],
+  ["Dados em escala", ["pyspark","databricks","fabric","delta"]],
+  ["Qualidade e integração", ["dq","apis","conciliacao","volume"]],
+  ["Visualização", ["powerbi","dashboards","kpis"]]
+];
+let gi = 0;
+document.getElementById("groups").innerHTML = GROUPS.map(([t, ids]) =>
+  `<div><h3>${t}</h3><ul>${ids.map(id => `<li style="--dl:${(gi++ * .035).toFixed(3)}s"><button type="button" data-node="${id}"><i style="background:var(--red)"></i>${esc(byId[id].label)}</button></li>`).join("")}</ul></div>`).join("");
+
+const ESTUDO = new Set();
+const STACK = {
+  python:["É a linguagem que uso para tudo que precisa de lógica: tratar arquivos, chamar APIs e montar os processos em pacotes reutilizáveis.","Desde 2025, nas automações do MIS. Hoje é a base dos pipelines que mantenho em produção."],
+  airflow:["Orquestra os processos com dependências, novas tentativas e alertas, então uma falha aparece na hora, e não no fim do dia.","Em produção desde 2026, como Analista de Dados."],
+  airflow3:["É a versão usada nos ambientes mais novos, com melhorias na forma de declarar e acompanhar as DAGs.","Aplico no trabalho atual e na Esteira ANP."],
+  git:["Versionar tudo que vai para produção deixa claro o que mudou, quando e por quê, e permite voltar atrás com segurança.","No dia a dia como Analista de Dados, com branch e pull request."],
+  gha:["Automatiza os testes e a promoção entre ambientes, tirando o deploy manual do caminho.","Aplico no fluxo de entrega e na Esteira ANP."],
+  sql:["Boa parte da regra de negócio mora no banco. Uma procedure bem escrita resolve em minutos o que levaria horas fora dele.","Desde 2025 no MIS, com SQL Server, e hoje em processos que rodam todos os dias."],
+  oracle:["Muitos ambientes corporativos rodam em Oracle, e o mesmo raciocínio de SQL vale para ele, com as particularidades do banco.","Aplico no trabalho atual e como banco do Pipeline ANP."],
+  procs:["Centralizam as regras pesadas no banco e permitem reprocessar qualquer data só trocando um parâmetro.","Desde o MIS, em 2025, e hoje em produção."],
+  plano:["Ler o plano de execução é o que separa uma consulta que funciona de uma consulta que escala.","Aplico ao otimizar as consultas pesadas que rodam em produção."],
+  linux:["Os servidores onde os processos rodam são Linux, então investigar uma falha passa por terminal, logs e shell script.","Como Analista de Dados, em ambiente on-premise."],
+  containers:["Isolam cada processo com as suas dependências, então o que roda em teste roda igual em produção.","Na operação de processos como Analista de Dados."],
+  docker:["É a forma padrão de empacotar um processo com tudo que ele precisa para rodar.","No dia a dia como Analista de Dados e na imagem da Esteira ANP."],
+  k8s:["Permite separar dev, homologação e produção no mesmo cluster, com controle de cada ambiente.","Aplico na operação dos ambientes e na Esteira ANP."],
+  rancher:["Facilita gerenciar o cluster: deploy, variáveis, consulta a logs e reinício controlado.","Aplico na operação dos ambientes e na Esteira ANP."],
+  onprem:["Servidor próprio exige disciplina com controle de mudanças, porque não existe o botão de desfazer da nuvem.","No ambiente atual, como Analista de Dados."],
+  pyspark:["Quando o volume passa do que cabe com conforto em memória, o processamento distribuído resolve.","Em 2026, como Analista de Dados."],
+  databricks:["Junta processamento distribuído e notebooks num ambiente só, bom tanto para explorar quanto para produção.","Em 2026, como Analista de Dados."],
+  fabric:["Integra ingestão, tratamento e Power BI na mesma plataforma.","Em 2026, como Analista de Dados."],
+  delta:["Traz histórico e transações para o data lake, o que deixa as cargas mais seguras.","Aplico junto com PySpark e Databricks."],
+  dq:["Dado errado em produção é pior que dado atrasado. Validar antes de liberar evita retrabalho para quem consome.","Em todos os processos que mantenho como Analista de Dados."],
+  apis:["Boa parte das fontes chega por API, e integrar direto elimina etapas manuais.","Em integrações em produção como Analista de Dados."],
+  conciliacao:["Comparar fontes é o jeito mais rápido de achar dado faltando ou duplicado.","Nos controles de qualidade como Analista de Dados."],
+  volume:["Uma queda brusca no número de linhas costuma ser o primeiro sinal de que algo quebrou na origem.","Em produção como Analista de Dados, e nas checagens do Qualidade ANP."],
+  powerbi:["Transforma o resultado dos processos em algo que a operação consegue acompanhar para decidir.","No MIS, em 2025, e no BI da Tel Contact Center para o Banco Safra, em 2026."],
+  dashboards:["Um painel bem feito responde a pergunta antes de alguém precisar fazer.","No BI da Tel Contact Center, em 2026."],
+  kpis:["Indicador bem definido é o que conecta o dado à decisão.","Desde 2024, acompanhando indicadores no planejamento."]
+};
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-node]"); if (!t) return;
+  e.preventDefault(); hidePeek();
+  scrollTo({top:0, behavior:"smooth"});
+  setTimeout(() => open(t.dataset.node, true), 1100);
+});
+
+const io = new IntersectionObserver(es => es.forEach(en => {
+  if (!en.isIntersecting) return;
+  const el = en.target; io.unobserve(el);
+  if (el.matches("[data-scr]")) scramble(el);
+  else if (el.matches("[data-type]")) typeOut(el);
+  else el.classList.add("in");
+}), {rootMargin:"0px 0px -12% 0px"});
+document.querySelectorAll("[data-rv],[data-scr],[data-type],.groups,.mail").forEach(el => io.observe(el));
+
+const docLinks = [...document.querySelectorAll(".tree a")], ind = document.getElementById("ind");
+function moveInd(a){ ind.style.transform = `translateY(${a.parentElement.offsetTop}px)`; ind.style.height = a.offsetHeight + "px"; }
+moveInd(docLinks[0]);
+const treeIO = new IntersectionObserver(es => es.forEach(en => {
+  if (!en.isIntersecting) return;
+  docLinks.forEach(a => { const on = a.getAttribute("href") === "#" + en.target.id; a.classList.toggle("on", on); if (on) moveInd(a); });
+}), {rootMargin:"-40% 0px -55% 0px"});
+document.querySelectorAll(".doc").forEach(d => treeIO.observe(d));
+
+const tl = document.getElementById("tl"), tlFill = document.getElementById("tlFill"), tlItems = [...tl.querySelectorAll("li")];
+
+const consts = [];
+[].forEach((doc, di) => {
+  const id = doc.dataset.c, nb = [...adj[id]].slice(0, 11), c = 115;
+  const pos = nb.map((k, i) => { const a = i / nb.length * 6.283 + di, r = 55 + ((i * 37 + di * 13) % 50); return [c + Math.cos(a) * r, c + Math.sin(a) * r]; });
+  let svg = `<svg class="const" viewBox="0 0 230 230" aria-hidden="true">`;
+  pos.forEach(([x, y]) => svg += `<line x1="${c}" y1="${c}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"/>`);
+  nb.forEach((k, i) => nb.forEach((m, j) => { if (j > i && adj[k].has(m)) svg += `<line x1="${pos[i][0].toFixed(1)}" y1="${pos[i][1].toFixed(1)}" x2="${pos[j][0].toFixed(1)}" y2="${pos[j][1].toFixed(1)}"/>`; }));
+  nb.forEach((k, i) => svg += `<circle cx="${pos[i][0].toFixed(1)}" cy="${pos[i][1].toFixed(1)}" r="${byId[k].type === "con" ? 2.6 : 3.6}" fill="${dotColor(byId[k])}"/>`);
+  svg += `<circle cx="${c}" cy="${c}" r="6" fill="${dotColor(byId[id])}"/></svg>`;
+  doc.insertAdjacentHTML("beforeend", svg);
+  consts.push({doc, el: doc.lastElementChild, sp: .22 + (di % 3) * .08, rot: di % 2 ? 1 : -1});
+});
+
+const field = document.getElementById("field"), idb = document.getElementById("idb"), roleLine = document.getElementById("roleLine");
+const titleEl = document.getElementById("title");
+const letters = (() => {
+  const t = titleEl.textContent; titleEl.setAttribute("aria-label", t);
+  titleEl.innerHTML = [...t].map(c => `<span class="ch" aria-hidden="true">${c === " " ? "&nbsp;" : c}</span>`).join("");
+  return [...titleEl.children].map((el, i, a) => ({el, ch:el.textContent, d:.5 + Math.random() * 1, r:Math.random() - .5, i, n:a.length}));
+})();
+function scrambleLetters(dur){
+  const t0 = performance.now();
+  (function f(now){
+    let done = true;
+    for (const L of letters){
+      const ti = (L.i / L.n) * dur * .7, k = (now - t0 - ti) / (dur * .3);
+      if (L.ch === "\u00a0") continue;
+      if (k < 1){ done = false; L.el.textContent = k < 0 && Math.random() < .5 ? L.el.textContent : GLY[(Math.random() * GLY.length) | 0]; if (k < 0 && now - t0 < 60) L.el.textContent = GLY[(Math.random() * GLY.length) | 0]; }
+      else L.el.textContent = L.ch;
+    }
+    if (!done) requestAnimationFrame(f);
+  })(t0);
+}
+let fx = -999, fy = -999, tx = -999, ty = -999;
+addEventListener("pointermove", e => { tx = e.clientX; ty = e.clientY; }, {passive:true});
+function frame(){
+  fx += (tx - fx) * .12; fy += (ty - fy) * .12;
+  field.style.setProperty("--mx", fx + "px"); field.style.setProperty("--my", fy + "px");
+  field.style.setProperty("--py", (-sY * .3) + "px");
+  { const hp = clamp(sY / Math.max(1, heroWrap.offsetHeight - innerHeight)), e = ease(hp);
+    idb.style.transform = `perspective(1000px) rotateY(${(pmx * 5).toFixed(2)}deg) rotateX(${(-pmy * 4).toFixed(2)}deg) translate3d(${(pmx * -20).toFixed(1)}px, ${(pmy * -14 - e * 40).toFixed(1)}px, 0)`;
+    const tn = performance.now();
+    for (const L of letters){
+      const en = readyT ? clamp((tn - readyT - L.i * 48) / 900) : 0, enE = 1 - Math.pow(2, -10 * en);
+      const ex = clamp(e * 1.9 - L.i * .045), exE = ex * ex * ex;
+      L.el.style.transform = `translate3d(0, ${(Math.max(1 - enE, exE) * 115).toFixed(2)}%, 0)`;
+    }
+    { const en = readyT ? clamp((tn - readyT - 650) / 900) : 0, vis = ease(en) * (1 - ease(clamp(e * 2.6)));
+      roleLine.style.clipPath = `inset(0 ${(100 - vis * 100).toFixed(2)}% 0 0)`; }
+    roleLine.style.transform = `translate3d(${(pmx * 9).toFixed(1)}px, ${(pmy * 7 + e * 30).toFixed(1)}px, 0)`;
+    roleLine.style.opacity = document.body.classList.contains("ready") ? 1 : 0; }
+  for (const k of consts){
+    const r = k.doc.getBoundingClientRect(); if (r.bottom < -300 || r.top > innerHeight + 300) continue;
+    const y = (r.top + (scrollY - sY) + 120 - innerHeight / 2) * -k.sp;
+    k.el.style.transform = `translate3d(${pmx * -14}px, ${y + pmy * -14}px, 0) rotate(${(y * .04 * k.rot).toFixed(2)}deg)`;
+  }
+  const r = tl.getBoundingClientRect(), h = r.height - 16;
+  const p = clamp((innerHeight * .62 - r.top - 8) / h);
+  tlFill.style.height = (p * h) + "px";
+  tlItems.forEach(li => li.classList.toggle("lit", li.offsetTop + 8 <= p * h + 2));
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+const peek = document.getElementById("peek"); let peekT = null;
+const fine = matchMedia("(pointer: fine)").matches;
+function hidePeek(){ clearTimeout(peekT); peek.classList.remove("on"); }
+function showPeek(el){
+  const id = el.dataset.node, n = byId[id]; if (!n) return;
+  const nb = [...adj[id]].slice(0, 12), cx = 144, cy = 62;
+  let svg = `<svg viewBox="0 0 288 124" aria-hidden="true">`;
+  nb.forEach((k, i) => {
+    const a = (i / nb.length) * Math.PI * 2 - Math.PI / 2, x = cx + Math.cos(a) * 118, y = cy + Math.sin(a) * 48, L = Math.hypot(x - cx, y - cy).toFixed(1);
+    svg += `<line class="pl" pathLength="1" x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" style="--d:${(i * .03).toFixed(2)}s"/>`;
+  });
+  nb.forEach((k, i) => {
+    const a = (i / nb.length) * Math.PI * 2 - Math.PI / 2, x = cx + Math.cos(a) * 118, y = cy + Math.sin(a) * 48, m = byId[k];
+    svg += `<circle class="pn" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${m.type === "con" ? 3.2 : 4.2}" fill="${dotColor(m)}" style="--d:${(.2 + i * .03).toFixed(2)}s"/>`;
+  });
+  svg += `<circle class="pn" cx="${cx}" cy="${cy}" r="7" fill="${dotColor(n)}" style="--d:0s"/></svg>`;
+  const st = el.closest("#groups") && STACK[id];
+  let body;
+  if (st) body = `<p class="pq mono">Por que eu uso</p><p>${esc(st[0])}</p><p class="pq mono">Onde e quando usei</p><p>${esc(st[1])}</p>`;
+  else { const t = plain(noteText(id)).split("\n\n")[0]; body = `<p>${esc(t.length > 150 ? t.slice(0, 148) + "…" : t)}</p>`; }
+  peek.innerHTML = `<p class="pp mono">${pathOf(id)}</p><h4>${esc(n.label)}</h4>${body}${svg}`;
+  const r = el.getBoundingClientRect();
+  let x = Math.min(r.left, innerWidth - 356), y = r.bottom + 10;
+  if (y + 260 > innerHeight) y = r.top - 10 - peek.offsetHeight;
+  peek.style.left = Math.max(12, x) + "px"; peek.style.top = Math.max(12, y) + "px";
+  requestAnimationFrame(() => peek.classList.add("on"));
+}
+if (fine){
+  document.querySelector(".docs").addEventListener("pointerover", e => {
+    const el = e.target.closest("[data-node]"); if (!el) return;
+    clearTimeout(peekT); peekT = setTimeout(() => { peek.classList.remove("on"); showPeek(el); if (peek.offsetHeight) { const r = el.getBoundingClientRect(); if (r.bottom + 10 + peek.offsetHeight > innerHeight) peek.style.top = Math.max(12, r.top - 10 - peek.offsetHeight) + "px"; } }, 260);
+  });
+  document.querySelector(".docs").addEventListener("pointerout", e => { if (e.target.closest("[data-node]")) hidePeek(); });
+  addEventListener("scroll", hidePeek, {passive:true});
+}
+</script>
+</body>
+</html>
